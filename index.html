@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #universe {
+        background-color: #111;
+        overflow: hidden;
+      }
+      h1 {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: -1;
+        transform: translate(-50%, -50%);
+        margin: 0;
+        color: white;
+        font-size: 300px;
+        opacity: 10%;
+      }
+      #earth {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+      }
+      #earth::before {
+        content: '';
+        display: block;
+        background: repeating-linear-gradient(45deg, #949911, #949911 5px, #198AE6 1px, #198AE6 10px);
+        border: 3px solid #6E45E6;
+        border-radius: 50% 50% 50% 70%/50% 50% 70% 60%;
+        width: 80px;
+        height: 80px;
+        transform: translate(-50%, -50%);
+      }
+      #earth::after {
+        content: 'Earth';
+        color: white;
+        display: block;
+        transform: translate(50%, -200%);
+      }
+      #moon {
+        position: absolute;
+      }
+      #moon::before {
+        content: '';
+        display: block;
+        background: linear-gradient(to bottom right, #DEE602, #DEE602 50%, #E62019 50%, #E62019 100%);
+        border-radius: 50% 70% 50% 50%/50% 50% 70% 60%;
+        width: 20px;
+        height: 20px;
+        transform: translate(-50%, -50%);
+      }
+      #moon::after {
+        content: 'Moon';
+        color: white;
+        display: block;
+        transform: translate(50%, -50%);
+      }
+      .orbit {
+        position: absolute;
+      }
+      .orbit::before {
+        content: '';
+        display: block;
+        width: 1px;
+        height: 1px;
+        background-color: white;
+      }
+    </style>
+  </head>
+  <body id="universe">
+    <h1>revolution</h1>
+    <div id="earth" data-weight="100"></div>
+    <div id="moon" data-weight="1" data-vx="-100" data-vy="0" style="left: 50%; bottom: 0%;"></div>
+  </body>
+  <script>
+    const earth     = document.getElementById('earth')
+    const moon      = document.getElementById('moon')
+    const universe  = document.getElementById('universe')
+    const fps = 30
+    let frame = 0
+
+    setInterval(() => {
+      const orbits = document.getElementsByClassName('orbit')
+      const rectEarth = earth.getBoundingClientRect()
+      const rectMoon = moon.getBoundingClientRect()
+      const xEarth = rectEarth.x; const yEarth = rectEarth.y; const xMoon = rectMoon.x; const yMoon = rectMoon.y
+      const distanceX = xEarth - xMoon; const distanceY = yEarth - yMoon
+      const h = Math.sqrt(distanceX * distanceX + distanceY * distanceY)
+      const v = Math.sqrt(600 / h)
+      const vx = v * distanceX / h
+      const vy = v * distanceY / h
+
+      moon.dataset.vx = vx + parseFloat(moon.dataset.vx)
+      moon.dataset.vy = vy + parseFloat(moon.dataset.vy)
+
+      moon.style.left = (xMoon + parseFloat(moon.dataset.vx) / fps) + 'px'
+      moon.style.top = (yMoon + parseFloat(moon.dataset.vy) / fps) + 'px'
+
+      Array.prototype.forEach.call(orbits, (orbit) => {
+        if (orbit.dataset.life < 0) {
+          const opacity = orbit.style.filter.match(/opacity\((.*%)\)/)[1]
+          orbit.style.filter = `opacity(${parseFloat(opacity) - 0.01 * fps}%)`
+          if (parseFloat(opacity) < 1) {
+            orbit.remove()
+          }
+        } else {
+          orbit.dataset.life -= 1
+        }
+      })
+
+      if (100 * frame % fps === 0) {
+        const newOrbit = document.createElement('div')
+        newOrbit.style.left = moon.style.left
+        newOrbit.style.top = moon.style.top
+        newOrbit.classList.add('orbit')
+        newOrbit.style.filter = 'opacity(100%)'
+        newOrbit.dataset.life = 20 * fps
+        universe.appendChild(newOrbit)
+      }
+
+      frame += 1
+    }, 1000 / fps)
+  </script>
+</html>
